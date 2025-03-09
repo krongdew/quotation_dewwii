@@ -1,4 +1,3 @@
-//quotation-system/src/app/components/quotation/components/PriceSummary.tsx
 import React from 'react';
 import { Card, Row, Col, Typography, InputNumber, Switch, Form } from 'antd';
 import { CalculatedValues, FormMode } from '../types';
@@ -10,6 +9,10 @@ interface PriceSummaryProps {
   calculatedValues: CalculatedValues;
   includeVat: boolean;
   onVatToggle: (checked: boolean) => void;
+  includeDiscount: boolean;
+  onDiscountToggle: (checked: boolean) => void;
+  includeWithholding: boolean;
+  onWithholdingToggle: (checked: boolean) => void;
   mode: FormMode;
 }
 
@@ -18,6 +21,10 @@ const PriceSummary: React.FC<PriceSummaryProps> = ({
   calculatedValues,
   includeVat,
   onVatToggle,
+  includeDiscount,
+  onDiscountToggle,
+  includeWithholding,
+  onWithholdingToggle,
   mode
 }) => {
   // Handle value changes (discount, withholding)
@@ -39,24 +46,39 @@ const PriceSummary: React.FC<PriceSummaryProps> = ({
           <Text>ส่วนลด:</Text>
         </Col>
         <Col span={12}>
-          <Form.Item name="discount" noStyle>
-            <InputNumber
-              style={{ width: '100%' }}
-              min={0}
-              formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-              parser={(value?: string) => value ? Number(value.replace(/[^\d.]/g, '')) : 0}
-              onChange={handleValueChange}
-              disabled={mode === 'view'}
-            />
-          </Form.Item>
+          <Switch 
+            checked={includeDiscount} 
+            onChange={onDiscountToggle} 
+            disabled={mode === 'view'}
+          /> {includeDiscount ? "คิดส่วนลด" : "ไม่คิดส่วนลด"}
         </Col>
         
-        <Col span={16} style={{ textAlign: 'right' }}>
-          <Text>ยอดรวมหลังหักส่วนลด:</Text>
-        </Col>
-        <Col span={8} style={{ textAlign: 'right' }}>
-          <Text>{calculatedValues.afterDiscount.toLocaleString()} บาท</Text>
-        </Col>
+        {includeDiscount && (
+          <>
+            <Col span={12} style={{ textAlign: 'right' }}>
+              <Text>จำนวนส่วนลด:</Text>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="discount" noStyle>
+                <InputNumber
+                  style={{ width: '100%' }}
+                  min={0}
+                  formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                  parser={(value?: string) => value ? Number(value.replace(/[^\d.]/g, '')) : 0}
+                  onChange={handleValueChange}
+                  disabled={mode === 'view'}
+                />
+              </Form.Item>
+            </Col>
+            
+            <Col span={16} style={{ textAlign: 'right' }}>
+              <Text>ยอดรวมหลังหักส่วนลด:</Text>
+            </Col>
+            <Col span={8} style={{ textAlign: 'right' }}>
+              <Text>{calculatedValues.afterDiscount.toLocaleString()} บาท</Text>
+            </Col>
+          </>
+        )}
         
         <Col span={12} style={{ textAlign: 'right' }}>
           <Text>ภาษีมูลค่าเพิ่ม 7%:</Text>
@@ -91,17 +113,32 @@ const PriceSummary: React.FC<PriceSummaryProps> = ({
           <Text>หัก ณ ที่จ่าย 3%:</Text>
         </Col>
         <Col span={12}>
-          <Form.Item name="withholding" noStyle>
-            <InputNumber
-              style={{ width: '100%' }}
-              min={0}
-              formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-              parser={(value?: string) => value ? Number(value.replace(/[^\d.]/g, '')) : 0}
-              onChange={handleValueChange}
-              disabled={mode === 'view'}
-            />
-          </Form.Item>
+          <Switch 
+            checked={includeWithholding} 
+            onChange={onWithholdingToggle} 
+            disabled={mode === 'view'}
+          /> {includeWithholding ? "คิดภาษีหัก ณ ที่จ่าย" : "ไม่คิดภาษีหัก ณ ที่จ่าย"}
         </Col>
+        
+        {includeWithholding && (
+          <>
+            <Col span={12} style={{ textAlign: 'right' }}>
+              <Text>จำนวนภาษีหัก ณ ที่จ่าย:</Text>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="withholding" noStyle>
+                <InputNumber
+                  style={{ width: '100%' }}
+                  min={0}
+                  formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                  parser={(value?: string) => value ? Number(value.replace(/[^\d.]/g, '')) : 0}
+                  onChange={handleValueChange}
+                  disabled={mode === 'view'}
+                />
+              </Form.Item>
+            </Col>
+          </>
+        )}
         
         <Col span={16} style={{ textAlign: 'right' }}>
           <Title level={5} style={{ margin: 0 }}>ยอดสุทธิ:</Title>
@@ -118,6 +155,8 @@ const PriceSummary: React.FC<PriceSummaryProps> = ({
       <Form.Item name="totalAmount" hidden><InputNumber /></Form.Item>
       <Form.Item name="netTotal" hidden><InputNumber /></Form.Item>
       <Form.Item name="includeVat" hidden><InputNumber /></Form.Item>
+      <Form.Item name="includeDiscount" hidden><InputNumber /></Form.Item>
+      <Form.Item name="includeWithholding" hidden><InputNumber /></Form.Item>
     </Card>
   );
 };

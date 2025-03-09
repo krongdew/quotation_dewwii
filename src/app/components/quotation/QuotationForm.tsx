@@ -1,4 +1,3 @@
-//quotation-system/src/app/components/quotation/QuotationForm.tsx
 'use client';
 
 import React from 'react';
@@ -49,6 +48,10 @@ const QuotationForm: React.FC<QuotationFormProps> = ({ initialData, mode }) => {
     setItems
   } = useItemsManagement(initialData);
   
+  // คำสั่งสำหรับเพิ่ม state ใหม่เพื่อรองรับการเปิดปิดส่วนลดและภาษีหัก ณ ที่จ่าย
+  const [includeDiscount, setIncludeDiscount] = React.useState(initialData?.discount ? true : false);
+  const [includeWithholding, setIncludeWithholding] = React.useState(initialData?.withholding ? true : false);
+  
   const { 
     calculatedValues,
     includeVat,
@@ -66,10 +69,25 @@ const QuotationForm: React.FC<QuotationFormProps> = ({ initialData, mode }) => {
     useCompanySignature,
     isSigningCustomer,
     isSigningSeller,
-    customerSignature,  // เพิ่มบรรทัดนี้
-    sellerSignature,    // เพิ่มบรรทัดนี้
+    customerSignature,
+    sellerSignature,
     handleSignatureActions
   } = useSignatures(initialData, selectedCompany);
+  
+  // ฟังก์ชันสำหรับเปิด-ปิดส่วนลดและภาษีหัก ณ ที่จ่าย
+  const handleDiscountToggle = (checked: boolean) => {
+    setIncludeDiscount(checked);
+    if (!checked) {
+      form.setFieldsValue({ discount: 0 });
+    }
+  };
+
+  const handleWithholdingToggle = (checked: boolean) => {
+    setIncludeWithholding(checked);
+    if (!checked) {
+      form.setFieldsValue({ withholding: 0 });
+    }
+  };
   
   // Handle saving quotation
   const handleSave = async () => {
@@ -98,60 +116,65 @@ const QuotationForm: React.FC<QuotationFormProps> = ({ initialData, mode }) => {
   };
   
   // และในส่วนของฟังก์ชัน prepareQuotationData ให้แก้ไขเป็น:
-const prepareQuotationData = () => {
-  const formValues = form.getFieldsValue();
-  
-   // ใช้ค่า sellerSignature จาก hook
-   let sellerSignatureToUse = null;
-   if (useCompanySignature && selectedCompany?.signature) {
-     sellerSignatureToUse = selectedCompany.signature;
-   } else {
-     sellerSignatureToUse = sellerSignature;  // ใช้ค่าจาก hook
-   }
-  
-  return {
-    ...formValues,
-    issueDate: formValues.issueDate.format('YYYY-MM-DD'),
-    companyId: formValues.companyId || selectedCompany?.id,
-    includeVat,
-    items: items.map(item => ({
-      description: item.description,
-      unit: item.unit,
-      quantity: item.quantity,
-      pricePerUnit: item.pricePerUnit,
-      amount: item.amount,
-    })),
-    customerSignature: customerSignature,
-    sellerSignature: sellerSignatureToUse,
-  };
-};
-
-  // ใน src/app/components/quotation/QuotationForm.tsx - ตรวจสอบว่ามีการ log ข้อมูลเพิ่มเติมหรือไม่
-// ใช้ type จาก interface Quotation ที่มีอยู่แล้ว
-const createQuotation = async (data: Omit<Quotation, 'id'>) => {
-  try {
-    console.log('Sending data to create quotation:', data);
-    const res = await fetch('/api/quotations', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
+  const prepareQuotationData = () => {
+    const formValues = form.getFieldsValue();
     
-    const responseText = await res.text();
-    console.log('Server response:', responseText, 'Status:', res.status);
-    
-    if (!res.ok) {
-      throw new Error(responseText || 'Failed to create quotation');
+    // ใช้ค่า sellerSignature จาก hook
+    let sellerSignatureToUse = null;
+    if (useCompanySignature && selectedCompany?.signature) {
+      sellerSignatureToUse = selectedCompany.signature;
+    } else {
+      sellerSignatureToUse = sellerSignature;  // ใช้ค่าจาก hook
     }
     
-    message.success('สร้างใบเสนอราคาสำเร็จ');
-    const newQuotation = JSON.parse(responseText);
-    return newQuotation;
-  } catch (error) {
-    console.error('Detailed error:', error);
-    throw error;
-  }
-};
+    return {
+      ...formValues,
+      issueDate: formValues.issueDate.format('YYYY-MM-DD'),
+      companyId: formValues.companyId || selectedCompany?.id,
+      includeVat,
+      includeDiscount,  // เพิ่มฟิลด์ใหม่
+      includeWithholding,  // เพิ่มฟิลด์ใหม่
+      // ถ้าปิดส่วนลดหรือภาษีหัก ณ ที่จ่าย ให้ส่งค่า 0
+      discount: includeDiscount ? formValues.discount : 0,
+      withholding: includeWithholding ? formValues.withholding : 0,
+      items: items.map(item => ({
+        description: item.description,
+        unit: item.unit,
+        quantity: item.quantity,
+        pricePerUnit: item.pricePerUnit,
+        amount: item.amount,
+      })),
+      customerSignature: customerSignature,
+      sellerSignature: sellerSignatureToUse,
+    };
+  };
+
+  // ใน src/app/components/quotation/QuotationForm.tsx - ตรวจสอบว่ามีการ log ข้อมูลเพิ่มเติมหรือไม่
+  // ใช้ type จาก interface Quotation ที่มีอยู่แล้ว
+  const createQuotation = async (data: Omit<Quotation, 'id'>) => {
+    try {
+      console.log('Sending data to create quotation:', data);
+      const res = await fetch('/api/quotations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      
+      const responseText = await res.text();
+      console.log('Server response:', responseText, 'Status:', res.status);
+      
+      if (!res.ok) {
+        throw new Error(responseText || 'Failed to create quotation');
+      }
+      
+      message.success('สร้างใบเสนอราคาสำเร็จ');
+      const newQuotation = JSON.parse(responseText);
+      return newQuotation;
+    } catch (error) {
+      console.error('Detailed error:', error);
+      throw error;
+    }
+  };
   
   // Update existing quotation
   const updateQuotation = async (id: string, data: any) => {
@@ -211,26 +234,30 @@ const createQuotation = async (data: Omit<Quotation, 'id'>) => {
         
         {/* Signature and Price Summary sections */}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
-        <SignatureSection 
-        customerSigCanvas={customerSigCanvas}
-        sellerSigCanvas={sellerSigCanvas}
-        selectedCompany={selectedCompany}
-        initialData={initialData}
-        useCompanySignature={useCompanySignature}
-        isSigningCustomer={isSigningCustomer}
-        isSigningSeller={isSigningSeller}
-        // เพิ่ม props ใหม่
-        customerSignature={customerSignature}
-        sellerSignature={sellerSignature}
-        onSignatureAction={handleSignatureActions}
-        mode={mode}
-      />
+          <SignatureSection 
+            customerSigCanvas={customerSigCanvas}
+            sellerSigCanvas={sellerSigCanvas}
+            selectedCompany={selectedCompany}
+            initialData={initialData}
+            useCompanySignature={useCompanySignature}
+            isSigningCustomer={isSigningCustomer}
+            isSigningSeller={isSigningSeller}
+            // เพิ่ม props ใหม่
+            customerSignature={customerSignature}
+            sellerSignature={sellerSignature}
+            onSignatureAction={handleSignatureActions}
+            mode={mode}
+          />
           
           <PriceSummary 
             form={form}
             calculatedValues={calculatedValues}
             includeVat={includeVat}
             onVatToggle={handleVatToggle}
+            includeDiscount={includeDiscount}
+            onDiscountToggle={handleDiscountToggle}
+            includeWithholding={includeWithholding}
+            onWithholdingToggle={handleWithholdingToggle}
             mode={mode}
           />
         </div>
@@ -260,17 +287,16 @@ const createQuotation = async (data: Omit<Quotation, 'id'>) => {
       </Form>
       
       {/* Calculator Modal */}
-      {/* Calculator Modal */}
-<CalculatorModal 
-  visible={isCalculatorModalVisible}
-  desiredAmount={desiredAmount}
-  calculatorResult={calculatorResult}
-  onClose={() => handleCalculatorActions.closeModal()}
-  onDesiredAmountChange={(amount: number | null) => handleCalculatorActions.setDesiredAmount(amount)}
-  onCalculate={() => handleCalculatorActions.calculate()}
-  onApply={() => handleCalculatorActions.applyResult(setItems)}
-  onUpdateItems={setItems}
-/>
+      <CalculatorModal 
+        visible={isCalculatorModalVisible}
+        desiredAmount={desiredAmount}
+        calculatorResult={calculatorResult}
+        onClose={() => handleCalculatorActions.closeModal()}
+        onDesiredAmountChange={(amount: number | null) => handleCalculatorActions.setDesiredAmount(amount)}
+        onCalculate={() => handleCalculatorActions.calculate()}
+        onApply={() => handleCalculatorActions.applyResult(setItems)}
+        onUpdateItems={setItems}
+      />
     </Card>
   );
 };

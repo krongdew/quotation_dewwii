@@ -1,7 +1,6 @@
 //quotation-system/src/app/(dashboard)/quotations/pdf/[id]/page.tsx
 'use client';
-// @ts-ignore
-// eslint-disable-next-line
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Typography, Spin, message, Button, Card, Divider, Row, Col, Table } from 'antd';
 import { PrinterOutlined, DownloadOutlined, ArrowLeftOutlined } from '@ant-design/icons';
@@ -217,7 +216,7 @@ const PDFQuotationPage: React.FC = () => {
                     </Table.Summary.Cell>
                   </Table.Summary.Row>
                 )}
-                
+                {quotation.afterDiscount > 0 && (
                 <Table.Summary.Row>
                   <Table.Summary.Cell index={0} colSpan={5}>
                     <div style={{ textAlign: 'right' }}>
@@ -228,6 +227,7 @@ const PDFQuotationPage: React.FC = () => {
                     <Text strong>{quotation.afterDiscount.toLocaleString()} บาท</Text>
                   </Table.Summary.Cell>
                 </Table.Summary.Row>
+                )}
                 
                 {quotation.includeVat && (
                   <Table.Summary.Row>
