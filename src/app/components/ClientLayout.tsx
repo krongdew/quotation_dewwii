@@ -1,6 +1,5 @@
 'use client';
-// @ts-ignore
-// eslint-disable-next-line
+
 import React from 'react';
 import { Layout, ConfigProvider } from 'antd';
 import AppHeader from '../components/AppHeader';
@@ -11,7 +10,7 @@ const { Content } = Layout;
 const ClientLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <ConfigProvider
-      // @ts-ignore: antd runtime property
+      // @ts-expect-error
       disableReactCompatible
     >
       <Layout style={{ minHeight: '100vh' }}>

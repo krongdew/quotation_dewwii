@@ -1,7 +1,6 @@
 //quotation-system/src/app/components/quotation/QuotationForm.tsx
 'use client';
-// @ts-ignore
-// eslint-disable-next-line
+
 import React from 'react';
 import { Form, Button, Card, Divider, Space, message } from 'antd';
 import { SaveOutlined, FilePdfOutlined, ArrowLeftOutlined } from '@ant-design/icons';

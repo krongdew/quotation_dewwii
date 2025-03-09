@@ -3,8 +3,7 @@ import React from 'react';
 import { Card, Typography, Space, Button, Row, Col, Radio, Popconfirm } from 'antd';
 import SignatureCanvas from 'react-signature-canvas';
 import { SignatureOutlined, DeleteOutlined } from '@ant-design/icons';
-// @ts-ignore
-// eslint-disable-next-line
+
 const { Text } = Typography;
 const RadioGroup = Radio.Group;
 const RadioButton = Radio.Button;
