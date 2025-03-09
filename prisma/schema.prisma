@@ -14,9 +14,9 @@ model Customer {
   id                String       @id @default(uuid())
   companyName       String
   address           String
-  phoneNumber       String
-  email             String
-  taxId             String
+  phoneNumber       String?
+  email             String?
+  taxId             String?
   contactPerson     String
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
@@ -27,9 +27,9 @@ model CompanyProfile {
   id                String       @id @default(uuid())
   companyName       String
   address           String
-  phoneNumber       String
-  email             String
-  taxId             String
+  phoneNumber       String?
+  email             String?
+  taxId             String?
   contactPerson     String
   logo              String?
   signature         String?      // Added signature field

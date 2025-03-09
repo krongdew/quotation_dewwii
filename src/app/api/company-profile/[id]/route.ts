@@ -45,7 +45,7 @@ export async function PUT(
   try {
     const id = context.params.id;
     const body = await request.json();
- 
+    console.log('PUT request body:', body);  // เพิ่ม log เพื่อตรวจสอบข้อมูลที่ส่งมา
  
     // Extract all possible fields
     const { 
@@ -65,9 +65,9 @@ export async function PUT(
     
     if (companyName !== undefined) updateData.companyName = companyName;
     if (address !== undefined) updateData.address = address;
-    if (phoneNumber !== undefined) updateData.phoneNumber = phoneNumber;
-    if (email !== undefined) updateData.email = email;
-    if (taxId !== undefined) updateData.taxId = taxId;
+    if (phoneNumber !== undefined) updateData.phoneNumber = phoneNumber || "";
+    if (email !== undefined) updateData.email = email || "";
+    if (taxId !== undefined) updateData.taxId = taxId || "";
     if (contactPerson !== undefined) updateData.contactPerson = contactPerson;
     if (logo !== undefined) updateData.logo = logo;
     if (signature !== undefined) updateData.signature = signature;
@@ -84,17 +84,31 @@ export async function PUT(
       });
     }
     
-    // Update only the fields that were provided
-    const profile = await prisma.companyProfile.update({
-      where: { id },
-      data: updateData,
-    });
-    
-    return NextResponse.json(profile);
-  } catch (error) {
+    try {
+      // Update only the fields that were provided
+      const profile = await prisma.companyProfile.update({
+        where: { id },
+        data: updateData,
+      });
+      
+      return NextResponse.json(profile);
+    } catch (prismaError: any) {
+      console.error('Prisma error:', prismaError);
+      
+      // ตรวจสอบว่ามีข้อมูลที่จะอัปเดตหรือไม่
+      if (prismaError.code === 'P2025') {
+        return NextResponse.json(
+          { error: 'ไม่พบข้อมูลบริษัทที่ต้องการอัปเดต' },
+          { status: 404 }
+        );
+      }
+      
+      throw prismaError;
+    }
+  } catch (error: any) {
     console.error('Error updating company profile:', error);
     return NextResponse.json(
-      { error: 'เกิดข้อผิดพลาดในการอัพเดทข้อมูลบริษัท' },
+      { error: 'เกิดข้อผิดพลาดในการอัพเดทข้อมูลบริษัท: ' + (error.message || '') },
       { status: 500 }
     );
   }
@@ -126,15 +140,29 @@ export async function DELETE(
       );
     }
     
-    await prisma.companyProfile.delete({
-      where: { id },
-    });
-    
-    return new NextResponse(null, { status: 204 });
-  } catch (error) {
+    try {
+      await prisma.companyProfile.delete({
+        where: { id },
+      });
+      
+      return new NextResponse(null, { status: 204 });
+    } catch (prismaError: any) {
+      console.error('Prisma error:', prismaError);
+      
+      // ตรวจสอบถ้ามีข้อมูลที่เกี่ยวข้อง
+      if (prismaError.code === 'P2003') {
+        return NextResponse.json(
+          { error: 'ไม่สามารถลบข้อมูลบริษัทที่มีการใช้งานอยู่ได้' },
+          { status: 400 }
+        );
+      }
+      
+      throw prismaError;
+    }
+  } catch (error: any) {
     console.error('Error deleting company profile:', error);
     return NextResponse.json(
-      { error: 'เกิดข้อผิดพลาดในการลบข้อมูลบริษัท' },
+      { error: 'เกิดข้อผิดพลาดในการลบข้อมูลบริษัท: ' + (error.message || '') },
       { status: 500 }
     );
   }

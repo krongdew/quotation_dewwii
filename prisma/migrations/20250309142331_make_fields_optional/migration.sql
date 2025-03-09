@@ -1,0 +1,9 @@
+-- AlterTable
+ALTER TABLE "CompanyProfile" ALTER COLUMN "phoneNumber" DROP NOT NULL,
+ALTER COLUMN "email" DROP NOT NULL,
+ALTER COLUMN "taxId" DROP NOT NULL;
+
+-- AlterTable
+ALTER TABLE "Customer" ALTER COLUMN "phoneNumber" DROP NOT NULL,
+ALTER COLUMN "email" DROP NOT NULL,
+ALTER COLUMN "taxId" DROP NOT NULL;

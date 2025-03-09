@@ -1,4 +1,3 @@
-//quotation-system/src/app/(dashboard)/company-profiles/page.tsx
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -32,9 +31,9 @@ interface CompanyProfile {
   id: string;
   companyName: string;
   address: string;
-  phoneNumber: string;
-  email: string;
-  taxId: string;
+  phoneNumber: string | null;
+  email: string | null;
+  taxId: string | null;
   contactPerson: string;
   logo?: string;
   signature?: string;
@@ -49,7 +48,6 @@ const CompanyProfilesPage: React.FC = () => {
   const [currentProfileId, setCurrentProfileId] = useState<string | null>(null);
   const [form] = Form.useForm();
   const [editingProfile, setEditingProfile] = useState<CompanyProfile | null>(null);
-  // Fixed: Use the correct type for sigCanvas
   const sigCanvas = useRef<SignatureCanvas>(null);
   
   // Fetch profiles data
@@ -98,25 +96,40 @@ const CompanyProfilesPage: React.FC = () => {
     try {
       const values = await form.validateFields();
       
+      // เตรียมข้อมูลสำหรับส่งไป API
+      const formData = {
+        ...values,
+        // ตั้งค่า empty string เป็น null สำหรับฟิลด์ optional
+        phoneNumber: values.phoneNumber || null,
+        email: values.email || null,
+        taxId: values.taxId || null
+      };
+      
       if (editingProfile) {
         // Update existing profile
         const res = await fetch(`/api/company-profile/${editingProfile.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(values),
+          body: JSON.stringify(formData),
         });
         
-        if (!res.ok) throw new Error('Failed to update profile');
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({ error: 'Failed to update profile' }));
+          throw new Error(errorData.error || 'Failed to update profile');
+        }
         message.success('อัพเดทข้อมูลบริษัทสำเร็จ');
       } else {
         // Create new profile
         const res = await fetch('/api/company-profile', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(values),
+          body: JSON.stringify(formData),
         });
         
-        if (!res.ok) throw new Error('Failed to create profile');
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({ error: 'Failed to create profile' }));
+          throw new Error(errorData.error || 'Failed to create profile');
+        }
         message.success('เพิ่มข้อมูลบริษัทสำเร็จ');
       }
       
@@ -125,7 +138,11 @@ const CompanyProfilesPage: React.FC = () => {
       fetchProfiles();
     } catch (error) {
       console.error('Error submitting form:', error);
-      message.error('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+      let errorMessage = 'เกิดข้อผิดพลาดในการบันทึกข้อมูล';
+      if (error instanceof Error) {
+        errorMessage += `: ${error.message}`;
+      }
+      message.error(errorMessage);
     }
   };
   
@@ -298,16 +315,19 @@ const saveSignature = async () => {
       title: 'เบอร์โทร',
       dataIndex: 'phoneNumber',
       key: 'phoneNumber',
+      render: (text: string | null) => text || '-'
     },
     {
       title: 'อีเมล',
       dataIndex: 'email',
       key: 'email',
+      render: (text: string | null) => text || '-'
     },
     {
       title: 'เลขประจำตัวผู้เสียภาษี',
       dataIndex: 'taxId',
       key: 'taxId',
+      render: (text: string | null) => text || '-'
     },
     {
       title: 'ลายเซ็น',
@@ -420,8 +440,7 @@ const saveSignature = async () => {
           
           <Form.Item 
             name="phoneNumber" 
-            label="เบอร์โทรศัพท์" 
-            rules={[{ required: true, message: 'กรุณากรอกเบอร์โทรศัพท์' }]}
+            label="เบอร์โทรศัพท์"
           >
             <Input placeholder="เบอร์โทรศัพท์" />
           </Form.Item>
@@ -430,7 +449,6 @@ const saveSignature = async () => {
             name="email" 
             label="อีเมล" 
             rules={[
-              { required: true, message: 'กรุณากรอกอีเมล' },
               { type: 'email', message: 'รูปแบบอีเมลไม่ถูกต้อง' }
             ]}
           >
@@ -439,8 +457,7 @@ const saveSignature = async () => {
           
           <Form.Item 
             name="taxId" 
-            label="เลขประจำตัวผู้เสียภาษี" 
-            rules={[{ required: true, message: 'กรุณากรอกเลขประจำตัวผู้เสียภาษี' }]}
+            label="เลขประจำตัวผู้เสียภาษี"
           >
             <Input placeholder="เลขประจำตัวผู้เสียภาษี" />
           </Form.Item>

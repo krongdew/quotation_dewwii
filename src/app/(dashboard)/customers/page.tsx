@@ -23,9 +23,9 @@ interface Customer {
   id: string;
   companyName: string;
   address: string;
-  phoneNumber: string;
-  email: string;
-  taxId: string;
+  phoneNumber: string | null;
+  email: string | null;
+  taxId: string | null;
   contactPerson: string;
 }
 
@@ -78,25 +78,40 @@ const CustomersPage: React.FC = () => {
     try {
       const values = await form.validateFields();
       
+      // เตรียมข้อมูลสำหรับส่งไป API
+      const formData = {
+        ...values,
+        // ตั้งค่า empty string เป็น null สำหรับฟิลด์ optional
+        phoneNumber: values.phoneNumber || null,
+        email: values.email || null,
+        taxId: values.taxId || null
+      };
+      
       if (editingCustomer) {
         // Update existing customer
         const res = await fetch(`/api/customers/${editingCustomer.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(values),
+          body: JSON.stringify(formData),
         });
         
-        if (!res.ok) throw new Error('Failed to update customer');
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({ error: 'Failed to update customer' }));
+          throw new Error(errorData.error || 'Failed to update customer');
+        }
         message.success('อัพเดทข้อมูลลูกค้าสำเร็จ');
       } else {
         // Create new customer
         const res = await fetch('/api/customers', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(values),
+          body: JSON.stringify(formData),
         });
         
-        if (!res.ok) throw new Error('Failed to create customer');
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({ error: 'Failed to create customer' }));
+          throw new Error(errorData.error || 'Failed to create customer');
+        }
         message.success('เพิ่มข้อมูลลูกค้าสำเร็จ');
       }
       
@@ -105,7 +120,12 @@ const CustomersPage: React.FC = () => {
       fetchCustomers();
     } catch (error) {
       console.error('Error submitting form:', error);
-      message.error('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+      let errorMessage = 'เกิดข้อผิดพลาดในการบันทึกข้อมูล';
+      if (error instanceof Error) {
+        errorMessage += `: ${error.message}`;
+      }
+      
+      message.error(errorMessage);
     }
   };
   
@@ -123,13 +143,21 @@ const CustomersPage: React.FC = () => {
             method: 'DELETE',
           });
           
-          if (!res.ok) throw new Error('Failed to delete customer');
+          if (!res.ok) {
+            const errorData = await res.json().catch(() => ({ error: 'Failed to delete customer' }));
+            throw new Error(errorData.error || 'Failed to delete customer');
+          }
           message.success('ลบข้อมูลลูกค้าสำเร็จ');
           fetchCustomers();
         } catch (error) {
           console.error('Error deleting customer:', error);
-          message.error('เกิดข้อผิดพลาดในการลบข้อมูล');
-        }
+          let errorMessage = 'เกิดข้อผิดพลาดในการบันทึกข้อมูล';
+  if (error instanceof Error) {
+    errorMessage += `: ${error.message}`;
+  }
+  
+  message.error(errorMessage);
+}
       },
     });
   };
@@ -150,16 +178,19 @@ const CustomersPage: React.FC = () => {
       title: 'เบอร์โทร',
       dataIndex: 'phoneNumber',
       key: 'phoneNumber',
+      render: (text: string | null) => text || '-'
     },
     {
       title: 'อีเมล',
       dataIndex: 'email',
       key: 'email',
+      render: (text: string | null) => text || '-'
     },
     {
       title: 'เลขประจำตัวผู้เสียภาษี',
       dataIndex: 'taxId',
       key: 'taxId',
+      render: (text: string | null) => text || '-'
     },
     {
       title: 'จัดการ',
@@ -242,8 +273,7 @@ const CustomersPage: React.FC = () => {
           
           <Form.Item 
             name="phoneNumber" 
-            label="เบอร์โทรศัพท์" 
-            rules={[{ required: true, message: 'กรุณากรอกเบอร์โทรศัพท์' }]}
+            label="เบอร์โทรศัพท์"
           >
             <Input placeholder="เบอร์โทรศัพท์" />
           </Form.Item>
@@ -252,7 +282,6 @@ const CustomersPage: React.FC = () => {
             name="email" 
             label="อีเมล" 
             rules={[
-              { required: true, message: 'กรุณากรอกอีเมล' },
               { type: 'email', message: 'รูปแบบอีเมลไม่ถูกต้อง' }
             ]}
           >
@@ -261,8 +290,7 @@ const CustomersPage: React.FC = () => {
           
           <Form.Item 
             name="taxId" 
-            label="เลขประจำตัวผู้เสียภาษี" 
-            rules={[{ required: true, message: 'กรุณากรอกเลขประจำตัวผู้เสียภาษี' }]}
+            label="เลขประจำตัวผู้เสียภาษี"
           >
             <Input placeholder="เลขประจำตัวผู้เสียภาษี" />
           </Form.Item>
