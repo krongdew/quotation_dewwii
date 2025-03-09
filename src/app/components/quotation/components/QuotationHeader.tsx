@@ -2,8 +2,7 @@
 import React from 'react';
 import { Form, Input, DatePicker, Select, Row, Col, Card, Typography } from 'antd';
 import { Customer, CompanyProfile, FormMode } from '../types';
-// @ts-ignore
-// eslint-disable-next-line
+
 const { Option } = Select;
 const { Title } = Typography;
 

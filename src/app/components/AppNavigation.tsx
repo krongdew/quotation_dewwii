@@ -1,6 +1,5 @@
 'use client';
-// @ts-ignore
-// eslint-disable-next-line
+
 import React from 'react';
 import { Layout, Menu } from 'antd';
 import { 
