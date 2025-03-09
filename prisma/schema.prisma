@@ -1,0 +1,76 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Customer {
+  id                String       @id @default(uuid())
+  companyName       String
+  address           String
+  phoneNumber       String
+  email             String
+  taxId             String
+  contactPerson     String
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  quotations        Quotation[]
+}
+
+model CompanyProfile {
+  id                String       @id @default(uuid())
+  companyName       String
+  address           String
+  phoneNumber       String
+  email             String
+  taxId             String
+  contactPerson     String
+  logo              String?
+  signature         String?      // Added signature field
+  isDefault         Boolean      @default(false)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  quotations        Quotation[]
+}
+
+model Quotation {
+  id                String           @id @default(uuid())
+  quotationNumber   String           @unique
+  issueDate         DateTime
+  customer          Customer         @relation(fields: [customerId], references: [id])
+  customerId        String
+  company           CompanyProfile?  @relation(fields: [companyId], references: [id])
+  companyId         String?
+  includeVat        Boolean          @default(false)
+  items             QuotationItem[]
+  subtotal          Float
+  discount          Float            @default(0)
+  afterDiscount     Float
+  vat               Float
+  totalAmount       Float
+  withholding       Float            @default(0)
+  netTotal          Float
+  customerSignature String?
+  sellerSignature   String?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+}
+
+model QuotationItem {
+  id            String     @id @default(uuid())
+  quotation     Quotation  @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  quotationId   String
+  description   String
+  unit          String
+  quantity      Int
+  pricePerUnit  Float
+  amount        Float
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+}
