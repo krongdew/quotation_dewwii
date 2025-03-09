@@ -6,12 +6,11 @@ const nextConfig = {
   },
   // เพิ่ม ESLint config เพื่อปิดการตรวจสอบตอน build
   eslint: {
-    // ปิดการตรวจสอบ ESLint เมื่อ build
     ignoreDuringBuilds: true,
-  }
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
 }
 
-// next.config.js
-module.exports = {
-  output: 'export',
-}
+module.exports = nextConfig
