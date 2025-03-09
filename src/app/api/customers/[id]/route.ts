@@ -100,28 +100,43 @@ const customer = await prisma.customer.update({
 export async function DELETE(request: Request, { params }: RouteParams) {
   try {
     const { id } = params;
+    console.log('Attempting to delete customer with ID:', id);
+    
+    // ตรวจสอบว่าลูกค้ามีอยู่หรือไม่
+    const customer = await prisma.customer.findUnique({
+      where: { id }
+    });
+    
+    if (!customer) {
+      console.log('Customer not found:', id);
+      return NextResponse.json(
+        { error: 'ไม่พบข้อมูลลูกค้า' },
+        { status: 404 }
+      );
+    }
     
     try {
       await prisma.customer.delete({
         where: { id },
       });
       
+      console.log('Customer deleted successfully:', id);
       return new NextResponse(null, { status: 204 });
     } catch (prismaError: any) {
-      console.error('Prisma error:', prismaError);
+      console.error('Prisma error during delete:', prismaError);
       
-      // ตรวจสอบว่ามีข้อมูลที่จะลบหรือไม่
-      if (prismaError.code === 'P2025') {
+      // ตรวจสอบ Foreign key constraint
+      if (prismaError.code === 'P2003') {
         return NextResponse.json(
-          { error: 'ไม่พบข้อมูลลูกค้าที่ต้องการลบ' },
-          { status: 404 }
+          { error: 'ไม่สามารถลบข้อมูลลูกค้าที่มีการใช้งานอยู่ได้' },
+          { status: 400 }
         );
       }
       
       throw prismaError;
     }
   } catch (error: any) {
-    console.error('Error deleting customer:', error);
+    console.error('Error in DELETE handler:', error);
     return NextResponse.json(
       { error: 'เกิดข้อผิดพลาดในการลบข้อมูลลูกค้า: ' + (error.message || '') },
       { status: 500 }

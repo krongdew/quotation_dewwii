@@ -146,34 +146,52 @@ const CompanyProfilesPage: React.FC = () => {
     }
   };
   
-  // Handle profile deletion
-  const handleDelete = async (id: string) => {
-    Modal.confirm({
-      title: 'ยืนยันการลบข้อมูล',
-      content: 'คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลบริษัทนี้?',
-      okText: 'ใช่',
-      okType: 'danger',
-      cancelText: 'ยกเลิก',
-      onOk: async () => {
-        try {
-          const res = await fetch(`/api/company-profile/${id}`, {
-            method: 'DELETE',
-          });
-          
-          if (!res.ok) {
-            const errorData = await res.json();
-            throw new Error(errorData.error || 'Failed to delete profile');
-          }
-          
-          message.success('ลบข้อมูลบริษัทสำเร็จ');
-          fetchProfiles();
-        } catch (error: any) {
-          console.error('Error deleting profile:', error);
-          message.error(error.message || 'เกิดข้อผิดพลาดในการลบข้อมูล');
+// สำหรับ Company Profile Page
+const handleDelete = async (id: string) => {
+  // ใช้ confirm แทน Modal
+  const confirmDelete = window.confirm('คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลบริษัทนี้?');
+  
+  if (confirmDelete) {
+    try {
+      console.log('Deleting company profile with ID:', id);
+      const res = await fetch(`/api/company-profile/${id}`, {
+        method: 'DELETE',
+      });
+      
+      console.log('Delete response status:', res.status);
+      
+      // ถ้าสถานะเป็น 204 (No Content) แสดงว่าลบสำเร็จ
+      if (res.status === 204) {
+        message.success('ลบข้อมูลบริษัทสำเร็จ');
+        fetchProfiles();
+        return;
+      }
+      
+      // ถ้าไม่ใช่ 204 ให้พยายามอ่านข้อความผิดพลาด
+      let errorMsg = 'Failed to delete profile';
+      try {
+        const errorData = await res.json();
+        errorMsg = errorData.error || errorMsg;
+      } catch (e) {
+        if (res.status === 404) {
+          errorMsg = 'ไม่พบข้อมูลบริษัท';
+        } else if (res.status === 400) {
+          errorMsg = 'ไม่สามารถลบข้อมูลที่เป็นค่าเริ่มต้นหรือมีการใช้งานอยู่ได้';
         }
-      },
-    });
-  };
+      }
+      
+      throw new Error(errorMsg);
+    } catch (error) {
+      console.error('Error deleting profile:', error);
+      let errorMessage = 'เกิดข้อผิดพลาดในการลบข้อมูล';
+      if (error instanceof Error) {
+        errorMessage += `: ${error.message}`;
+      }
+      message.error(errorMessage);
+    }
+  }
+};
+
   
   // Set as default
   const handleSetDefault = async (id: string) => {

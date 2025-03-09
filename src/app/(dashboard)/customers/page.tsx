@@ -129,38 +129,52 @@ const CustomersPage: React.FC = () => {
     }
   };
   
-  // Handle customer deletion
-  const handleDelete = async (id: string) => {
-    Modal.confirm({
-      title: 'ยืนยันการลบข้อมูล',
-      content: 'คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลลูกค้านี้?',
-      okText: 'ใช่',
-      okType: 'danger',
-      cancelText: 'ยกเลิก',
-      onOk: async () => {
-        try {
-          const res = await fetch(`/api/customers/${id}`, {
-            method: 'DELETE',
-          });
-          
-          if (!res.ok) {
-            const errorData = await res.json().catch(() => ({ error: 'Failed to delete customer' }));
-            throw new Error(errorData.error || 'Failed to delete customer');
-          }
-          message.success('ลบข้อมูลลูกค้าสำเร็จ');
-          fetchCustomers();
-        } catch (error) {
-          console.error('Error deleting customer:', error);
-          let errorMessage = 'เกิดข้อผิดพลาดในการบันทึกข้อมูล';
-  if (error instanceof Error) {
-    errorMessage += `: ${error.message}`;
-  }
+  // สำหรับ Customer Page
+const handleDelete = async (id: string) => {
+  // ใช้ confirm แทน Modal
+  const confirmDelete = window.confirm('คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลลูกค้านี้?');
   
-  message.error(errorMessage);
-}
-      },
-    });
-  };
+  if (confirmDelete) {
+    try {
+      console.log('Deleting customer with ID:', id);
+      const res = await fetch(`/api/customers/${id}`, {
+        method: 'DELETE',
+      });
+      
+      console.log('Delete response status:', res.status);
+      
+      // ถ้าสถานะเป็น 204 (No Content) แสดงว่าลบสำเร็จ
+      if (res.status === 204) {
+        message.success('ลบข้อมูลลูกค้าสำเร็จ');
+        fetchCustomers();
+        return;
+      }
+      
+      // ถ้าไม่ใช่ 204 ให้พยายามอ่านข้อความผิดพลาด
+      let errorMsg = 'Failed to delete customer';
+      try {
+        const errorData = await res.json();
+        errorMsg = errorData.error || errorMsg;
+      } catch (e) {
+        // กรณีไม่สามารถอ่าน JSON ได้
+        if (res.status === 404) {
+          errorMsg = 'ไม่พบข้อมูลลูกค้า';
+        } else if (res.status === 400) {
+          errorMsg = 'ไม่สามารถลบข้อมูลที่มีการใช้งานอยู่ได้';
+        }
+      }
+      
+      throw new Error(errorMsg);
+    } catch (error) {
+      console.error('Error deleting customer:', error);
+      let errorMessage = 'เกิดข้อผิดพลาดในการลบข้อมูล';
+      if (error instanceof Error) {
+        errorMessage += `: ${error.message}`;
+      }
+      message.error(errorMessage);
+    }
+  }
+};
   
   // Table columns
   const columns = [

@@ -1,5 +1,4 @@
-//quotation-system/src/app/api/quotations/[id]/route.ts
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { prisma } from '../../../../lib/prisma';
 
 interface RouteParams {
@@ -8,12 +7,11 @@ interface RouteParams {
   };
 }
 
-
 export async function GET(request: Request, { params }: RouteParams) {
   try {
     console.log('GET quotation with params:', params);
     // ดึงค่า id โดยตรง ไม่ต้อง await
-    const id = (await params).id;
+    const id = params.id;
     console.log('Fetching quotation with ID:', id);
 
     const quotation = await prisma.quotation.findUnique({
@@ -46,7 +44,7 @@ export async function GET(request: Request, { params }: RouteParams) {
 
 export async function PUT(request: Request, { params }: RouteParams) {
   try {
-    const id = (await params).id;
+    const id = params.id;
     const body = await request.json();
     const { 
       quotationNumber, 
@@ -129,46 +127,57 @@ export async function PUT(request: Request, { params }: RouteParams) {
   }
 }
 
-
-export async function DELETE(request: Request, { params }: RouteParams) {
+export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
-    // ใช้วิธีเดียวกับใน GET และ PUT
-    const id = (await params).id;
-    console.log('API: Deleting quotation with ID:', id);
+    const id = params.id;
+    console.log('Attempting to delete quotation with ID:', id);
     
-    // ตรวจสอบว่ามีใบเสนอราคานี้อยู่จริงหรือไม่
+    // ตรวจสอบว่ามีใบเสนอราคานี้หรือไม่
     const quotation = await prisma.quotation.findUnique({
-      where: { id },
-      include: { items: true }
+      where: { id }
     });
     
     if (!quotation) {
+      console.log('Quotation not found:', id);
       return NextResponse.json(
-        { error: 'ไม่พบใบเสนอราคานี้' },
+        { error: 'ไม่พบข้อมูลใบเสนอราคา' },
         { status: 404 }
       );
     }
     
-    // ลบใบเสนอราคาและรายการสินค้าที่เกี่ยวข้องโดยใช้ transaction
-    const result = await prisma.$transaction(async (tx) => {
-      // ลบรายการสินค้าก่อน
-      await tx.quotationItem.deleteMany({
-        where: { quotationId: id }
+    try {
+      // ลบข้อมูลใบเสนอราคาและรายการสินค้าที่เกี่ยวข้อง
+      await prisma.$transaction(async (tx: any) => {
+        // ลบรายการสินค้าก่อน (เนื่องจากมี foreign key constraint)
+        await tx.quotationItem.deleteMany({
+          where: { quotationId: id },
+        });
+        
+        // ลบใบเสนอราคา
+        await tx.quotation.delete({
+          where: { id },
+        });
       });
       
-      // จากนั้นลบใบเสนอราคา
-      return tx.quotation.delete({
-        where: { id }
-      });
-    });
-    
-    console.log('API: Successfully deleted quotation:', result);
-    return new NextResponse(null, { status: 204 });
-    
-  } catch (error) {
-    console.error('API Error deleting quotation:', error);
+      console.log('Quotation deleted successfully:', id);
+      return new NextResponse(null, { status: 204 });
+    } catch (prismaError: any) {
+      console.error('Prisma error during delete:', prismaError);
+      
+      // ตรวจสอบถ้ามีข้อมูลที่เกี่ยวข้อง
+      if (prismaError.code === 'P2003') {
+        return NextResponse.json(
+          { error: 'ไม่สามารถลบข้อมูลใบเสนอราคาที่มีการใช้งานอยู่ได้' },
+          { status: 400 }
+        );
+      }
+      
+      throw prismaError;
+    }
+  } catch (error: any) {
+    console.error('Error in DELETE handler:', error);
     return NextResponse.json(
-      { error: `Failed to delete quotation: ${(error as Error).message}` },
+      { error: 'เกิดข้อผิดพลาดในการลบข้อมูลใบเสนอราคา: ' + (error.message || '') },
       { status: 500 }
     );
   }
