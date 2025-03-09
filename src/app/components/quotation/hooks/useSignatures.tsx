@@ -2,8 +2,7 @@
 import { useState, useRef, useEffect } from 'react';
 import SignatureCanvas from 'react-signature-canvas';
 import { Quotation, CompanyProfile } from '../types';
-// @ts-ignore
-// eslint-disable-next-line
+
 export const useSignatures = (initialData?: Quotation, selectedCompany?: CompanyProfile | null) => {
   const [isSigningCustomer, setIsSigningCustomer] = useState(false);
   const [isSigningSeller, setIsSigningSeller] = useState(false);
