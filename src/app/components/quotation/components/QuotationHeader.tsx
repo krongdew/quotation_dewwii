@@ -34,8 +34,8 @@ const QuotationHeader: React.FC<QuotationHeaderProps> = ({
         
         <Form.Item
           name="companyId"
-          label="บริษัทผู้เสนอราคา"
-          rules={[{ required: true, message: 'กรุณาเลือกบริษัทผู้เสนอราคา' }]}
+          label="ผู้เสนอราคา"
+          rules={[{ required: true, message: 'กรุณาเลือกผู้เสนอราคา' }]}
         >
           <Select
             placeholder="เลือกบริษัท"

@@ -148,7 +148,7 @@ const PDFQuotationPage: React.FC = () => {
             <Col span={12}>
               {company ? (
                 <div style={{ marginBottom: 15, border: '1px solid #f0f0f0', padding: '8px', borderRadius: '4px', fontSize: '0.9em' }}>
-                  <Text type="secondary" style={{ display: 'block', marginBottom: '3px', fontSize: '0.85em' }}>บริษัทผู้เสนอราคา:</Text>
+                  <Text type="secondary" style={{ display: 'block', marginBottom: '3px', fontSize: '0.85em' }}>ผู้เสนอราคา:</Text>
                   <Title level={5} style={{ margin: '0 0 5px 0' }}>{company.companyName}</Title>
                   <Text style={{ fontSize: '0.85em' }}>ที่อยู่: {company.address}</Text><br />
                   <Text style={{ fontSize: '0.85em' }}>เลขประจำตัวผู้เสียภาษี: {company.taxId}</Text><br />
@@ -158,7 +158,7 @@ const PDFQuotationPage: React.FC = () => {
                 </div>
               ) : (
                 <div style={{ marginBottom: 15, border: '1px dashed #ff4d4f', padding: '8px', borderRadius: '4px' }}>
-                  <Text type="danger">ไม่พบข้อมูลบริษัทผู้เสนอราคา</Text>
+                  <Text type="danger">ไม่พบข้อมูลผู้เสนอราคา</Text>
                 </div>
               )}
             </Col>

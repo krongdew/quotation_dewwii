@@ -3,8 +3,7 @@ import { useState, useEffect } from 'react';
 import { Form } from 'antd';
 import dayjs from 'dayjs';
 import { Customer, CompanyProfile, Quotation } from '../types';
-// @ts-ignore
-// eslint-disable-next-line
+
 export const useQuotationData = (
   form: any, 
   initialData?: Quotation

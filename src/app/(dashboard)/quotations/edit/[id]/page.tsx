@@ -1,7 +1,6 @@
 //quotation-system/src/app/(dashboard)/quotations/edit/[id]/page.tsx
 'use client';
-// @ts-ignore
-// eslint-disable-next-line
+
 import React, { useState, useEffect } from 'react';
 import { Typography, Spin, message } from 'antd';
 import QuotationForm from '../../../../components/quotation/QuotationForm'; // เปลี่ยนเป็น import จาก index.tsx

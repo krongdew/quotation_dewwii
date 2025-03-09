@@ -5,8 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { Typography, Spin, message } from 'antd';
 import QuotationForm from '../../../../components/quotation/QuotationForm'; // เปลี่ยนเป็น import จาก index.tsx
 import { useParams } from 'next/navigation';
-// @ts-ignore
-// eslint-disable-next-line
+
 const { Title } = Typography;
 
 const ViewQuotationPage: React.FC = () => {

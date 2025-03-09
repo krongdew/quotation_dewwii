@@ -1,7 +1,6 @@
 //quotation-system/src/app/(dashboard)/quotations/create/page.tsx
 'use client';
-// @ts-ignore
-// eslint-disable-next-line
+
 import React from 'react';
 import { Typography } from 'antd';
 

@@ -111,7 +111,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
         where: { id },
         include: {
           customer: true,
-          company: true,  // เพิ่มการดึงข้อมูลบริษัทผู้เสนอราคา
+          company: true,  // เพิ่มการดึงข้อมูลผู้เสนอราคา
           items: true,
         },
       });

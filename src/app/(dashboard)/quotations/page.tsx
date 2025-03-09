@@ -1,7 +1,6 @@
 //quotation-system/src/app/(dashboard)/quotations/page.tsx
 'use client';
-// @ts-ignore
-// eslint-disable-next-line
+
 import React, { useState, useEffect } from 'react';
 import { 
   Typography, 

@@ -7,8 +7,7 @@ import {
   FileOutlined, 
   DollarOutlined 
 } from '@ant-design/icons';
-// @ts-ignore
-// eslint-disable-next-line
+
 const { Title } = Typography;
 
 const Dashboard: React.FC = () => {

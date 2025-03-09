@@ -1,8 +1,7 @@
 //quotation-system/src/app/components/quotation/hooks/useItemsManagement.tsx
 import { useState, useEffect } from 'react';
 import { QuotationItem, Quotation } from '../types';
-// @ts-ignore
-// eslint-disable-next-line
+
 export const useItemsManagement = (initialData?: Quotation) => {
   const [items, setItems] = useState<QuotationItem[]>([]);
   
