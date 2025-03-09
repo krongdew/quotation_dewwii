@@ -1,6 +1,6 @@
 //quotation-system/src/app/api/quotations/[id]/route.ts
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '../../../../lib/prisma';
 
 interface RouteParams {
   params: {

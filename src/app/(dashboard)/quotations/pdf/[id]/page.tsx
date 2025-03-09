@@ -8,7 +8,7 @@ import { PrinterOutlined, DownloadOutlined, ArrowLeftOutlined } from '@ant-desig
 import { useParams, useRouter } from 'next/navigation';
 import dayjs from 'dayjs';
 // นำเข้า types จากโครงสร้างใหม่
-import { Quotation, QuotationItem, CompanyProfile } from '@/app/components/quotation/types';
+import { Quotation, QuotationItem, CompanyProfile } from '../../../../components/quotation/types';
 
 const { Title, Text } = Typography;
 

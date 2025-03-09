@@ -3,8 +3,8 @@
 // eslint-disable-next-line
 import React from 'react';
 import { Layout, ConfigProvider } from 'antd';
-import AppHeader from '@/app/components/AppHeader';
-import AppNavigation from '@/app/components/AppNavigation';
+import AppHeader from '../components/AppHeader';
+import AppNavigation from '../components/AppNavigation';
 
 const { Content } = Layout;
 

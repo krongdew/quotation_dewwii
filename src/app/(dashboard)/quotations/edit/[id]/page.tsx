@@ -4,7 +4,7 @@
 // eslint-disable-next-line
 import React, { useState, useEffect } from 'react';
 import { Typography, Spin, message } from 'antd';
-import QuotationForm from '@/app/components/quotation'; // เปลี่ยนเป็น import จาก index.tsx
+import QuotationForm from '../../../../components/quotation/QuotationForm'; // เปลี่ยนเป็น import จาก index.tsx
 import { useParams } from 'next/navigation';
 
 const { Title } = Typography;

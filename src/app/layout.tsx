@@ -1,8 +1,8 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import StyledComponentsRegistry from '@/lib/AntdRegistry';
-import ClientLayout from '@/app/components/ClientLayout';
+import StyledComponentsRegistry from '../lib/AntdRegistry';
+import ClientLayout from './components/ClientLayout';
 // @ts-ignore
 // eslint-disable-next-line
 const inter = Inter({ subsets: ['latin'] });
