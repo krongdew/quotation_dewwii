@@ -122,6 +122,11 @@ const PDFQuotationPage: React.FC = () => {
     window.print();
   };
 
+  // ตรวจสอบว่ามีการใช้ส่วนลดหรือไม่
+  const hasDiscount = quotation.discount > 0;
+  // ตรวจสอบว่ายอดรวมหลังหักส่วนลดแตกต่างจากยอดรวมหรือไม่
+  const showAfterDiscount = hasDiscount && quotation.afterDiscount !== quotation.subtotal;
+
   return (
     <>
       <div className="no-print" style={{ marginBottom: 20, display: 'flex', justifyContent: 'space-between' }}>
@@ -172,17 +177,17 @@ const PDFQuotationPage: React.FC = () => {
           <Divider style={{ margin: '12px 0' }} />
           
           <Row gutter={24}>
-        <Col span={24}>
-          <div style={{ marginBottom: 15, fontSize: '0.9em' }}>
-            <Text strong>ลูกค้า:</Text> {quotation?.customer?.companyName || '-'}<br />
-            <Text strong>ที่อยู่:</Text> {quotation?.customer?.address || '-'}<br />
-            <Text strong>เลขประจำตัวผู้เสียภาษี:</Text> {quotation?.customer?.taxId || '-'}<br />
-            <Text strong>ผู้ติดต่อ:</Text> {quotation?.customer?.contactPerson || '-'}<br />
-            <Text strong>เบอร์โทร:</Text> {quotation?.customer?.phoneNumber || '-'}<br />
-            <Text strong>อีเมล:</Text> {quotation?.customer?.email || '-'}
-          </div>
-        </Col>
-      </Row>
+            <Col span={24}>
+              <div style={{ marginBottom: 15, fontSize: '0.9em' }}>
+                <Text strong>ลูกค้า:</Text> {quotation?.customer?.companyName || '-'}<br />
+                <Text strong>ที่อยู่:</Text> {quotation?.customer?.address || '-'}<br />
+                <Text strong>เลขประจำตัวผู้เสียภาษี:</Text> {quotation?.customer?.taxId || '-'}<br />
+                <Text strong>ผู้ติดต่อ:</Text> {quotation?.customer?.contactPerson || '-'}<br />
+                <Text strong>เบอร์โทร:</Text> {quotation?.customer?.phoneNumber || '-'}<br />
+                <Text strong>อีเมล:</Text> {quotation?.customer?.email || '-'}
+              </div>
+            </Col>
+          </Row>
 
           <Table
             dataSource={quotation.items}
@@ -204,7 +209,7 @@ const PDFQuotationPage: React.FC = () => {
                   </Table.Summary.Cell>
                 </Table.Summary.Row>
                 
-                {quotation.discount > 0 && (
+                {hasDiscount && (
                   <Table.Summary.Row>
                     <Table.Summary.Cell index={0} colSpan={5}>
                       <div style={{ textAlign: 'right' }}>
@@ -216,17 +221,19 @@ const PDFQuotationPage: React.FC = () => {
                     </Table.Summary.Cell>
                   </Table.Summary.Row>
                 )}
-                {quotation.afterDiscount > 0 && (
-                <Table.Summary.Row>
-                  <Table.Summary.Cell index={0} colSpan={5}>
-                    <div style={{ textAlign: 'right' }}>
-                      <Text strong>ยอดรวมหลังหักส่วนลด / After Discount:</Text>
-                    </div>
-                  </Table.Summary.Cell>
-                  <Table.Summary.Cell index={1}>
-                    <Text strong>{quotation.afterDiscount.toLocaleString()} บาท</Text>
-                  </Table.Summary.Cell>
-                </Table.Summary.Row>
+                
+                {/* แสดงยอดรวมหลังหักส่วนลดเฉพาะเมื่อมีการใช้ส่วนลดเท่านั้น */}
+                {showAfterDiscount && (
+                  <Table.Summary.Row>
+                    <Table.Summary.Cell index={0} colSpan={5}>
+                      <div style={{ textAlign: 'right' }}>
+                        <Text strong>ยอดรวมหลังหักส่วนลด / After Discount:</Text>
+                      </div>
+                    </Table.Summary.Cell>
+                    <Table.Summary.Cell index={1}>
+                      <Text strong>{quotation.afterDiscount.toLocaleString()} บาท</Text>
+                    </Table.Summary.Cell>
+                  </Table.Summary.Row>
                 )}
                 
                 {quotation.includeVat && (
@@ -307,32 +314,32 @@ const PDFQuotationPage: React.FC = () => {
               </div>
             </Col>
             <Col span={12} style={{ textAlign: 'center' }}>
-  <div>
-    <div style={{ marginBottom: 10 }}>
-      <Text strong>ผู้อนุมัติ / Approved By</Text>
-    </div>
-    {quotation.customerSignature ? (
-      <div style={{ marginBottom: 5, height: 60 }}>
-        <img 
-          src={quotation.customerSignature} 
-          alt="Customer Signature" 
-          style={{ maxHeight: 60, maxWidth: 120 }} 
-        />
-      </div>
-    ) : (
-      <div style={{ marginBottom: 5, height: 60 }}>
-        {/* พื้นที่ว่างสำหรับลายเซ็น */}
-      </div>
-    )}
-    <div style={{ border: '0.5px solid #d9d9d9', width: 150, margin: '5px auto' }} />
-    <div style={{ fontSize: '0.85em' }}>
-      <Text>(..............................................)</Text>
-    </div>
-    <div style={{ fontSize: '0.85em' }}>
-      <Text>วันที่ / Date ....../....../......</Text>
-    </div>
-  </div>
-</Col>
+              <div>
+                <div style={{ marginBottom: 10 }}>
+                  <Text strong>ผู้อนุมัติ / Approved By</Text>
+                </div>
+                {quotation.customerSignature ? (
+                  <div style={{ marginBottom: 5, height: 60 }}>
+                    <img 
+                      src={quotation.customerSignature} 
+                      alt="Customer Signature" 
+                      style={{ maxHeight: 60, maxWidth: 120 }} 
+                    />
+                  </div>
+                ) : (
+                  <div style={{ marginBottom: 5, height: 60 }}>
+                    {/* พื้นที่ว่างสำหรับลายเซ็น */}
+                  </div>
+                )}
+                <div style={{ border: '0.5px solid #d9d9d9', width: 150, margin: '5px auto' }} />
+                <div style={{ fontSize: '0.85em' }}>
+                  <Text>(..............................................)</Text>
+                </div>
+                <div style={{ fontSize: '0.85em' }}>
+                  <Text>วันที่ / Date ....../....../......</Text>
+                </div>
+              </div>
+            </Col>
           </Row>
        
           <div style={{ marginTop: 40, textAlign: 'center', fontSize: '0.85em' }}>

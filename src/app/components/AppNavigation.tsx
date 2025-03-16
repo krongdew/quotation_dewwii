@@ -1,3 +1,4 @@
+//quotation-system/src/app/components/AppNavigation.tsx
 'use client';
 
 import React from 'react';
@@ -6,7 +7,8 @@ import {
   UserOutlined, 
   FileTextOutlined, 
   DashboardOutlined,
-  BankOutlined
+  BankOutlined,
+  FileDoneOutlined
 } from '@ant-design/icons';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -36,6 +38,11 @@ const AppNavigation: React.FC = () => {
       key: '/quotations',
       icon: <FileTextOutlined />,
       label: <Link href="/quotations">ใบเสนอราคา</Link>,
+    },
+    {
+      key: '/financial-documents',
+      icon: <FileDoneOutlined />,
+      label: <Link href="/financial-documents">เอกสารทางการเงิน</Link>,
     },
   ];
   

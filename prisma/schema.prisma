@@ -1,6 +1,4 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
+// quotation-system/prisma/schema.prisma
 generator client {
   provider = "prisma-client-js"
 }
@@ -21,6 +19,7 @@ model Customer {
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
   quotations        Quotation[]
+  financialDocs     FinancialDocument[]
 }
 
 model CompanyProfile {
@@ -32,11 +31,12 @@ model CompanyProfile {
   taxId             String?
   contactPerson     String
   logo              String?
-  signature         String?      // Added signature field
+  signature         String?
   isDefault         Boolean      @default(false)
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
   quotations        Quotation[]
+  financialDocs     FinancialDocument[]
 }
 
 model Quotation {
@@ -60,6 +60,8 @@ model Quotation {
   sellerSignature   String?
   createdAt         DateTime         @default(now())
   updatedAt         DateTime         @updatedAt
+  // เพิ่มความสัมพันธ์กับเอกสารทางการเงิน
+  financialDocs     FinancialDocument[]
 }
 
 model QuotationItem {
@@ -73,4 +75,75 @@ model QuotationItem {
   amount        Float
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
+}
+
+// เพิ่มโมเดลใหม่สำหรับเอกสารทางการเงิน
+model FinancialDocument {
+  id                String           @id @default(uuid())
+  documentNumber    String           @unique
+  documentType      DocumentType     // INVOICE, RECEIPT, TAX_INVOICE
+  issueDate         DateTime
+  dueDate           DateTime?        // สำหรับใบวางบิล
+  
+  // อ้างอิงถึงใบเสนอราคา
+  quotation         Quotation?       @relation(fields: [quotationId], references: [id])
+  quotationId       String?
+  
+  // ข้อมูลลูกค้าและบริษัท
+  customer          Customer         @relation(fields: [customerId], references: [id])
+  customerId        String
+  company           CompanyProfile?  @relation(fields: [companyId], references: [id])
+  companyId         String?
+  
+  // ข้อมูลการเงิน
+  includeVat        Boolean          @default(false)
+  subtotal          Float
+  discount          Float            @default(0)
+  afterDiscount     Float
+  vat               Float
+  totalAmount       Float
+  withholding       Float            @default(0)
+  netTotal          Float
+  
+  // ข้อมูลการชำระเงิน (สำหรับใบเสร็จ)
+  isPaid            Boolean          @default(false)
+  paymentMethod     PaymentMethod?   // CASH, TRANSFER, CHECK, CREDIT_CARD
+  paymentDate       DateTime?
+  paymentReference  String?          // เลขที่เช็ค, เลขอ้างอิงการโอน
+  
+  // ลายเซ็น
+  customerSignature String?
+  sellerSignature   String?
+  
+  // รายการสินค้า/บริการ
+  items             FinancialDocumentItem[]
+  
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+}
+
+model FinancialDocumentItem {
+  id                String            @id @default(uuid())
+  document          FinancialDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  documentId        String
+  description       String
+  unit              String
+  quantity          Int
+  pricePerUnit      Float
+  amount            Float
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+}
+
+enum DocumentType {
+  INVOICE          // ใบวางบิล
+  RECEIPT          // ใบเสร็จรับเงิน
+  TAX_INVOICE      // ใบกำกับภาษี
+}
+
+enum PaymentMethod {
+  CASH             // เงินสด
+  TRANSFER         // โอนเงิน
+  CHECK            // เช็ค
+  CREDIT_CARD      // บัตรเครดิต
 }

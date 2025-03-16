@@ -10,17 +10,22 @@ import {
   Tag, 
   Card, 
   message,
-  Modal 
+  Modal,
+  Tooltip 
 } from 'antd';
 import { 
   PlusOutlined, 
   EditOutlined, 
   DeleteOutlined, 
   FilePdfOutlined, 
-  EyeOutlined
+  EyeOutlined,
+  FileTextOutlined
 } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import dayjs from 'dayjs';
+
+// นำเข้าคอมโพเนนต์โมดัลสร้างเอกสารทางการเงิน
+import CreateFinancialDocModal from '../../components/financial-document/CreateFinancialDocModal';
 
 const { Title } = Typography;
 
@@ -59,6 +64,9 @@ interface Quotation {
 const QuotationsPage: React.FC = () => {
   const [quotations, setQuotations] = useState<Quotation[]>([]);
   const [loading, setLoading] = useState(false);
+  // สถานะสำหรับโมดัลสร้างเอกสารทางการเงิน
+  const [selectedQuotation, setSelectedQuotation] = useState<Quotation | null>(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
   const router = useRouter();
 
   // Fetch quotations data
@@ -94,25 +102,37 @@ const QuotationsPage: React.FC = () => {
     router.push(`/quotations/view/${id}`);
   };
 
-  // เพิ่มฟังก์ชันนี้ใน QuotationsPage.tsx
-const handleDelete = (id: string) => {
-  if (confirm('คุณแน่ใจหรือไม่ที่จะลบรายการนี้?')) {
-    fetch(`/api/quotations/${id}`, { method: 'DELETE' })
-      .then(res => {
-        if (res.ok) {
-          alert('ลบข้อมูลสำเร็จ');
-          fetchQuotations();
-        } else {
-          alert('เกิดข้อผิดพลาดในการลบข้อมูล');
-        }
-      })
-      .catch(err => alert('เกิดข้อผิดพลาด: ' + err.message));
-  }
-};
+  // Handle delete
+  const handleDelete = (id: string) => {
+    if (confirm('คุณแน่ใจหรือไม่ที่จะลบรายการนี้?')) {
+      fetch(`/api/quotations/${id}`, { method: 'DELETE' })
+        .then(res => {
+          if (res.ok) {
+            message.success('ลบข้อมูลสำเร็จ');
+            fetchQuotations();
+          } else {
+            message.error('เกิดข้อผิดพลาดในการลบข้อมูล');
+          }
+        })
+        .catch(err => message.error('เกิดข้อผิดพลาด: ' + err.message));
+    }
+  };
 
   // Generate PDF function
   const handleGeneratePDF = (id: string) => {
     router.push(`/quotations/pdf/${id}`);
+  };
+  
+  // เปิดโมดัลสร้างเอกสารทางการเงิน
+  const handleCreateFinancialDoc = (quotation: Quotation) => {
+    setSelectedQuotation(quotation);
+    setIsModalVisible(true);
+  };
+
+  // ปิดโมดัลสร้างเอกสารทางการเงิน
+  const handleCloseModal = () => {
+    setIsModalVisible(false);
+    setSelectedQuotation(null);
   };
 
   // Table columns
@@ -162,34 +182,46 @@ const handleDelete = (id: string) => {
       key: 'action',
       render: (_: any, record: Quotation) => (
         <Space size="small">
-          <Button
-            icon={<EyeOutlined />}
-            onClick={() => handleView(record.id)}
-            type="default"
-          >
-            ดู
-          </Button>
-          <Button
-            icon={<EditOutlined />}
-            onClick={() => handleEdit(record.id)}
-            type="primary"
-          >
-            แก้ไข
-          </Button>
-          <Button
-            icon={<FilePdfOutlined />}
-            onClick={() => handleGeneratePDF(record.id)}
-            type="default"
-          >
-            PDF
-          </Button>
-          <Button
-            icon={<DeleteOutlined />}
-            onClick={() => handleDelete(record.id)}
-            danger
-          >
-            ลบ
-          </Button>
+          <Tooltip title="ดู">
+            <Button
+              icon={<EyeOutlined />}
+              onClick={() => handleView(record.id)}
+              type="default"
+              size="small"
+            />
+          </Tooltip>
+          <Tooltip title="แก้ไข">
+            <Button
+              icon={<EditOutlined />}
+              onClick={() => handleEdit(record.id)}
+              type="primary"
+              size="small"
+            />
+          </Tooltip>
+          <Tooltip title="PDF">
+            <Button
+              icon={<FilePdfOutlined />}
+              onClick={() => handleGeneratePDF(record.id)}
+              type="default"
+              size="small"
+            />
+          </Tooltip>
+          <Tooltip title="สร้างเอกสารทางการเงิน">
+            <Button
+              icon={<FileTextOutlined />}
+              onClick={() => handleCreateFinancialDoc(record)}
+              type="default"
+              size="small"
+            />
+          </Tooltip>
+          <Tooltip title="ลบ">
+            <Button
+              icon={<DeleteOutlined />}
+              onClick={() => handleDelete(record.id)}
+              danger
+              size="small"
+            />
+          </Tooltip>
         </Space>
       ),
     },
@@ -217,6 +249,16 @@ const handleDelete = (id: string) => {
           pagination={{ pageSize: 10 }}
         />
       </Card>
+      
+      {/* โมดัลสร้างเอกสารทางการเงิน */}
+      {selectedQuotation && (
+        <CreateFinancialDocModal
+          visible={isModalVisible}
+          quotationId={selectedQuotation.id}
+          quotationNumber={selectedQuotation.quotationNumber}
+          onClose={handleCloseModal}
+        />
+      )}
     </>
   );
 };

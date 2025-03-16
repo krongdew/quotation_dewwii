@@ -1,3 +1,4 @@
+//quotation-system/src/app/api/customers/[id]/route.ts
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../../lib/prisma';
 

@@ -49,6 +49,7 @@ export interface Customer {
     netTotal: number;
     customerSignature?: string;
     sellerSignature?: string;
+    
   }
   
   export interface CalculatedValues {
