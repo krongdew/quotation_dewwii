@@ -18,24 +18,25 @@ function LoginForm() {
   const onFinish = async (values: { email: string; password: string }) => {
     setLoading(true);
     try {
+      // แก้ไข URL ให้เป็น absolute URL (แบบเต็ม)
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(values),
       });
-
-      // เพิ่ม logging เพื่อดูข้อมูลการตอบกลับ
+  
       console.log('Login response status:', response.status);
       const data = await response.json();
       console.log('Login response data:', data);
-
+  
       if (!response.ok) {
         throw new Error(data.error || 'Login failed');
       }
-
+  
       message.success('เข้าสู่ระบบสำเร็จ');
       router.push(redirectPath);
     } catch (error: any) {
+      console.error('Login error:', error);
       message.error(error.message || 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ');
     } finally {
       setLoading(false);
