@@ -1,13 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import { Form, Input, Button, Typography, Card, message, Space } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 const { Title, Text } = Typography;
 
-const LoginPage = () => {
+// สร้าง component แยกสำหรับส่วนที่ใช้ useSearchParams
+function LoginForm() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -22,11 +23,11 @@ const LoginPage = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(values),
       });
-      // เพิ่มบรรทัดนี้เพื่อตรวจสอบ response
-console.log('Full response:', await response.clone().text());
-      
 
+      // เพิ่ม logging เพื่อดูข้อมูลการตอบกลับ
+      console.log('Login response status:', response.status);
       const data = await response.json();
+      console.log('Login response data:', data);
 
       if (!response.ok) {
         throw new Error(data.error || 'Login failed');
@@ -70,6 +71,44 @@ console.log('Full response:', await response.clone().text());
   };
 
   return (
+    <Form
+      form={form}
+      name="login"
+      initialValues={{ remember: true }}
+      onFinish={onFinish}
+      layout="vertical"
+    >
+      <Form.Item
+        name="email"
+        rules={[{ required: true, message: 'กรุณากรอกอีเมล์' }, { type: 'email', message: 'รูปแบบอีเมล์ไม่ถูกต้อง' }]}
+      >
+        <Input prefix={<UserOutlined />} placeholder="อีเมล์" size="large" />
+      </Form.Item>
+
+      <Form.Item
+        name="password"
+        rules={[{ required: true, message: 'กรุณากรอกรหัสผ่าน' }]}
+      >
+        <Input.Password prefix={<LockOutlined />} placeholder="รหัสผ่าน" size="large" />
+      </Form.Item>
+
+      <Form.Item>
+        <Space direction="vertical" style={{ width: '100%' }}>
+          <Button type="primary" htmlType="submit" loading={loading} style={{ width: '100%' }} size="large">
+            เข้าสู่ระบบ
+          </Button>
+          <Button type="link" onClick={handleForgotPassword} style={{ width: '100%', padding: 0 }}>
+            ลืมรหัสผ่าน?
+          </Button>
+        </Space>
+      </Form.Item>
+    </Form>
+  );
+}
+
+// Component หลักที่จะถูกเรียกใช้โดย Next.js
+const LoginPage = () => {
+  return (
     <div style={{ 
       height: '100vh', 
       display: 'flex', 
@@ -83,38 +122,9 @@ console.log('Full response:', await response.clone().text());
           <Text>กรุณาเข้าสู่ระบบ</Text>
         </div>
         
-        <Form
-          form={form}
-          name="login"
-          initialValues={{ remember: true }}
-          onFinish={onFinish}
-          layout="vertical"
-        >
-          <Form.Item
-            name="email"
-            rules={[{ required: true, message: 'กรุณากรอกอีเมล์' }, { type: 'email', message: 'รูปแบบอีเมล์ไม่ถูกต้อง' }]}
-          >
-            <Input prefix={<UserOutlined />} placeholder="อีเมล์" size="large" />
-          </Form.Item>
-
-          <Form.Item
-            name="password"
-            rules={[{ required: true, message: 'กรุณากรอกรหัสผ่าน' }]}
-          >
-            <Input.Password prefix={<LockOutlined />} placeholder="รหัสผ่าน" size="large" />
-          </Form.Item>
-
-          <Form.Item>
-            <Space direction="vertical" style={{ width: '100%' }}>
-              <Button type="primary" htmlType="submit" loading={loading} style={{ width: '100%' }} size="large">
-                เข้าสู่ระบบ
-              </Button>
-              <Button type="link" onClick={handleForgotPassword} style={{ width: '100%', padding: 0 }}>
-                ลืมรหัสผ่าน?
-              </Button>
-            </Space>
-          </Form.Item>
-        </Form>
+        <Suspense fallback={<div>กำลังโหลด...</div>}>
+          <LoginForm />
+        </Suspense>
       </Card>
     </div>
   );
