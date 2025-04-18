@@ -18,31 +18,63 @@ function LoginForm() {
   const onFinish = async (values: { email: string; password: string }) => {
     setLoading(true);
     try {
-      // แก้ไข URL ให้เป็น absolute URL (แบบเต็ม)
+      console.log('Attempting login with:', values.email);
+      
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(values),
       });
-  
+      
       console.log('Login response status:', response.status);
-      const data = await response.json();
-      console.log('Login response data:', data);
-  
-      if (!response.ok) {
-        throw new Error(data.error || 'Login failed');
+      
+      // อ่านข้อมูล response ก่อนจะตรวจสอบรหัสสถานะ
+      let responseData;
+      try {
+        const responseText = await response.text();
+        console.log('Login response text:', responseText);
+        
+        if (responseText) {
+          responseData = JSON.parse(responseText);
+          console.log('Login response data:', responseData);
+        }
+      } catch (parseError) {
+        console.error('Error parsing response:', parseError);
       }
-  
-      message.success('เข้าสู่ระบบสำเร็จ');
-      router.push(redirectPath);
+      
+      // ตรวจสอบรหัสสถานะและแสดงข้อความ error ที่เหมาะสม
+      if (response.status === 401) {
+        // ใช้ alert แทน message เพื่อให้แน่ใจว่าจะเห็นข้อความ
+        alert('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
+        return;
+      }
+      
+      if (response.status === 403) {
+        alert('บัญชีนี้ถูกระงับการใช้งาน กรุณาติดต่อผู้ดูแลระบบ');
+        return;
+      }
+      
+      if (!response.ok) {
+        const errorMessage = responseData?.error || 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ';
+        alert(errorMessage);
+        return;
+      }
+      
+      // แสดงข้อความสำเร็จ
+      alert('เข้าสู่ระบบสำเร็จ');
+      
+      // ใช้ window.location.href แทน router.push เพื่อโหลดหน้าใหม่ทั้งหมด
+      setTimeout(() => {
+        window.location.href = redirectPath;
+      }, 1000);
     } catch (error: any) {
       console.error('Login error:', error);
-      message.error(error.message || 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ');
+      alert(error.message || 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ');
     } finally {
       setLoading(false);
     }
   };
-
+  
   const handleForgotPassword = async () => {
     const email = form.getFieldValue('email');
     
