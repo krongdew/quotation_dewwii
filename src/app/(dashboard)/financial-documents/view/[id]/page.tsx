@@ -1,4 +1,3 @@
-//quotation-system/src/app/(dashboard)/financial-documents/view/[id]/page.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -20,8 +19,8 @@ const ViewFinancialDocPage: React.FC<ViewFinancialDocProps> = ({ params }) => {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   
-  // ใช้วิธี destructuring โดยตรงเหมือนเดิม
-  // (สามารถใช้งานได้ในเวอร์ชัน Next.js ปัจจุบัน)
+  // ใช้วิธี destructuring โดยตรงเพื่อให้เข้ากับเวอร์ชันปัจจุบัน
+  // แทนที่จะใช้ React.use() ที่ยังมีปัญหาเรื่อง TypeScript
   const { id } = params;
 
   useEffect(() => {

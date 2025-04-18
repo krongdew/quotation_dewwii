@@ -1,8 +1,7 @@
-// quotation-system/src/app/components/financial-document/CreateFinancialDocModal.tsx
 'use client';
 
 import React, { useState } from 'react';
-import { Modal, Form, Input, Select, DatePicker, Button, message } from 'antd';
+import { Modal, Form, Input, Select, DatePicker, Button, message, Spin } from 'antd';
 import { useRouter } from 'next/navigation';
 import dayjs from 'dayjs';
 
@@ -24,40 +23,62 @@ const CreateFinancialDocModal: React.FC<CreateFinancialDocModalProps> = ({
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [documentType, setDocumentType] = useState<string | null>(null);
+  const [generatingNumber, setGeneratingNumber] = useState(false);
   const router = useRouter();
 
-  // Generate document number based on document type and current date
-  const generateDocumentNumber = (type: string) => {
-    const date = new Date();
-    const year = date.getFullYear().toString().slice(-2);
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    
-    let prefix = '';
-    switch (type) {
-      case 'INVOICE':
-        prefix = 'INV';
-        break;
-      case 'RECEIPT':
-        prefix = 'REC';
-        break;
-      case 'TAX_INVOICE':
-        prefix = 'TAX';
-        break;
-      default:
-        prefix = 'DOC';
+  // ฟังก์ชันสร้างเลขเอกสารอัตโนมัติ
+  const generateDocumentNumber = async (type: string) => {
+    try {
+      setGeneratingNumber(true);
+      const res = await fetch('/api/financial-documents/generate-document-number', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ documentType: type }),
+      });
+      
+      if (!res.ok) {
+        throw new Error('Failed to generate document number');
+      }
+      
+      const data = await res.json();
+      return data.documentNumber;
+    } catch (error) {
+      console.error('Error generating document number:', error);
+      message.error('ไม่สามารถสร้างเลขเอกสารอัตโนมัติได้');
+      // ใช้เลขเอกสารแบบเดิมเป็น fallback
+      const date = new Date();
+      const year = date.getFullYear().toString().slice(-2);
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      
+      let prefix = '';
+      switch (type) {
+        case 'INVOICE':
+          prefix = 'INV';
+          break;
+        case 'RECEIPT':
+          prefix = 'REC';
+          break;
+        case 'TAX_INVOICE':
+          prefix = 'TAX';
+          break;
+        default:
+          prefix = 'DOC';
+      }
+      
+      return `${prefix}${year}${month}-001`;
+    } finally {
+      setGeneratingNumber(false);
     }
-    
-    return `${prefix}${year}${month}-001`;
   };
 
-  const handleDocumentTypeChange = (value: string) => {
+  const handleDocumentTypeChange = async (value: string) => {
     setDocumentType(value);
     
-    // Generate and set document number
-    const documentNumber = generateDocumentNumber(value);
+    // สร้างเลขเอกสารอัตโนมัติ
+    const documentNumber = await generateDocumentNumber(value);
     form.setFieldsValue({ documentNumber });
     
-    // Set payment fields if it's a receipt
+    // ตั้งค่าเพิ่มเติมสำหรับใบเสร็จ
     if (value === 'RECEIPT') {
       form.setFieldsValue({ 
         isPaid: true,
@@ -112,6 +133,22 @@ const CreateFinancialDocModal: React.FC<CreateFinancialDocModalProps> = ({
     }
   };
 
+  // แยก Input เป็นสองเวอร์ชันเพื่อไม่ให้ suffix เปลี่ยนแปลงขณะ focus
+  const renderDocumentNumberInput = () => {
+    if (generatingNumber) {
+      return (
+        <Input 
+          placeholder="กำลังสร้างเลขที่เอกสาร..." 
+          suffix={<Spin size="small" />}
+        />
+      );
+    }
+    
+    return (
+      <Input placeholder="เลขที่เอกสารจะถูกสร้างอัตโนมัติ" />
+    );
+  };
+
   return (
     <Modal
       title="สร้างเอกสารทางการเงินจากใบเสนอราคา"
@@ -163,7 +200,7 @@ const CreateFinancialDocModal: React.FC<CreateFinancialDocModalProps> = ({
           label="เลขที่เอกสาร"
           rules={[{ required: true, message: 'กรุณาระบุเลขที่เอกสาร' }]}
         >
-          <Input placeholder="ระบุเลขที่เอกสาร" />
+          {renderDocumentNumberInput()}
         </Form.Item>
         
         <Form.Item

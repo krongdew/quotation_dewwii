@@ -1,4 +1,3 @@
-//quotation-system/src/app/(dashboard)/financial-documents/pdf/[id]/page.tsx
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -41,7 +40,9 @@ const FinancialDocPDFPage: React.FC<PDFViewProps> = ({ params }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  const { id } = params;
+  
+
+  const id = params?.id as string;
   const printRef = useRef(null);
 
   useEffect(() => {

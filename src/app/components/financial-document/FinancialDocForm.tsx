@@ -67,6 +67,7 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
   const dateValue = value ? (typeof value === 'string' ? new Date(value) : value) : null;
 
   return (
+    <div style={{ width: '100%' }}>
     <DatePicker
       selected={dateValue}
       onChange={onChange}
@@ -74,8 +75,9 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
       disabled={disabled}
       placeholderText={placeholder}
       className={`ant-input ${className}`}
-      style={{ width: '100%' }}
+      // ลบ style prop ออกจากที่นี่
     />
+  </div>
   );
 };
 
